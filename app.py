@@ -19,6 +19,8 @@ import json
 import tempfile
 from io import StringIO
 from typing import List, Tuple, Optional
+import shutil
+import subprocess
 
 import pandas as pd
 import streamlit as st
@@ -543,3 +545,13 @@ if uploaded:
             st.exception(e)
 else:
     st.caption("รองรับ PDF หรือรูปเดี่ยว (PNG/JPG)")
+
+import shutil, subprocess, pytesseract, streamlit as st
+
+t_path = shutil.which("tesseract")
+st.write("tesseract path:", t_path)
+try:
+    ver = subprocess.run(["tesseract", "--version"], capture_output=True, text=True, check=True)
+    st.text(ver.stdout.splitlines()[0])
+except Exception as e:
+    st.text(f"tesseract --version failed: {e}")
