@@ -1,0 +1,10 @@
+streamlit
+pdf2image
+pillow
+pytesseract
+pandas
+rapidfuzz
+beautifulsoup4
+lxml
+xlsxwriter
+requests
