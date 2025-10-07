@@ -439,7 +439,7 @@ def process_image_ocr(pil_img: Image.Image, tess_langs: str = 'tha+eng') -> Opti
     """
     try:
         text = pytesseract.image_to_string(pil_img, lang=tess_langs)
-        return text
+        return text if text.strip() else None
     except (TesseractError, TesseractNotFoundError) as e:
         st.error(f"OCR Error: {str(e)}")
         st.info("Please check if Tesseract is properly installed")
@@ -503,6 +503,11 @@ if uploaded:
 
                 extracted_parts.append(text)
                 prog.progress(i / len(pages_images))
+
+            extracted_parts = [part for part in extracted_parts if part is not None]
+            if not extracted_parts:
+                st.error("No text could be extracted from the document")
+                st.stop()  # Use st.stop() instead of return in Streamlit app flow
 
             extracted_text = "\n\n".join(extracted_parts)
 
