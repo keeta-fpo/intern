@@ -18,12 +18,14 @@ import re
 import json
 import tempfile
 from io import StringIO
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import pandas as pd
 import streamlit as st
 from bs4 import BeautifulSoup
 from PIL import Image
+import pytesseract
+from pytesseract import TesseractError, TesseractNotFoundError
 
 # Optional fuzzy matcher
 try:
@@ -426,6 +428,23 @@ def process_extracted_text(extracted_text: str, export_path_excel="งบกา�
         "unknown_count": len(unknowns),
     }
 
+def process_image_ocr(pil_img: Image.Image, tess_langs: str = 'tha+eng') -> Optional[str]:
+    """Process image with Tesseract OCR.
+    
+    Args:
+        pil_img: PIL Image object
+        tess_langs: Tesseract language string
+    Returns:
+        Extracted text or None if error occurs
+    """
+    try:
+        text = pytesseract.image_to_string(pil_img, lang=tess_langs)
+        return text
+    except (TesseractError, TesseractNotFoundError) as e:
+        st.error(f"OCR Error: {str(e)}")
+        st.info("Please check if Tesseract is properly installed")
+        return None
+
 # ---------- Streamlit UI ----------
 st.set_page_config(page_title="OCR → Financials Excel", layout="wide")
 st.title("📄 OCR → งบการเงิน (Excel)")
@@ -480,7 +499,7 @@ if uploaded:
                     if not TESSERACT_AVAILABLE:
                         st.error("ยังไม่มี Tesseract ติดตั้งบนระบบนี้")
                         st.stop()
-                    text = pytesseract.image_to_string(pil_img, lang=tess_langs)
+                    text = process_image_ocr(pil_img)
 
                 extracted_parts.append(text)
                 prog.progress(i / len(pages_images))
