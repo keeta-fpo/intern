@@ -429,20 +429,24 @@ def process_extracted_text(extracted_text: str, export_path_excel="งบกา�
     }
 
 def process_image_ocr(pil_img: Image.Image, tess_langs: str = 'tha+eng') -> Optional[str]:
-    """Process image with Tesseract OCR.
-    
-    Args:
-        pil_img: PIL Image object
-        tess_langs: Tesseract language string
-    Returns:
-        Extracted text or None if error occurs
-    """
+    """Process image with Tesseract OCR."""
     try:
+        # Check if Tesseract is installed
+        tesseract_version = pytesseract.get_tesseract_version()
+        st.info(f"Tesseract version: {tesseract_version}")
+        
+        # Perform OCR
         text = pytesseract.image_to_string(pil_img, lang=tess_langs)
-        return text if text.strip() else None
+        if not text or not text.strip():
+            st.warning("No text extracted from image")
+            return None
+        return text.strip()
     except (TesseractError, TesseractNotFoundError) as e:
         st.error(f"OCR Error: {str(e)}")
-        st.info("Please check if Tesseract is properly installed")
+        st.error("Tesseract installation error. Please check system configuration.")
+        return None
+    except Exception as e:
+        st.error(f"Unexpected error: {str(e)}")
         return None
 
 # ---------- Streamlit UI ----------
@@ -504,10 +508,10 @@ if uploaded:
                 extracted_parts.append(text)
                 prog.progress(i / len(pages_images))
 
-            extracted_parts = [part for part in extracted_parts if part is not None]
+            extracted_parts = [part for part in extracted_parts if part is not None and part.strip()]
             if not extracted_parts:
-                st.error("No text could be extracted from the document")
-                st.stop()  # Use st.stop() instead of return in Streamlit app flow
+                st.error("ไม่สามารถแปลงเอกสารได้ กรุณาตรวจสอบการติดตั้ง Tesseract")
+                st.stop()
 
             extracted_text = "\n\n".join(extracted_parts)
 
