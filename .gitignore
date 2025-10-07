@@ -47,3 +47,6 @@ Thumbs.db
 *.xls
 output/
 temp/
+
+# Keep packages.txt
+!packages.txt
